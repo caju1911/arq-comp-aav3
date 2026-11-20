@@ -1,0 +1,79 @@
+:root{
+  --bg:#0f1724;
+  --panel:#0b1220;
+  --accent:#7c3aed; /* roxo */
+  --ok:#16a34a;
+  --present:#f59e0b;
+  --absent:#111827;
+  --cell-size:64px;
+  --gap:8px;
+  color-scheme: dark;
+}
+*{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
+html,body{height:100%}
+body{
+  margin:0;
+  background:linear-gradient(180deg,#071026 0%, #0b1220 100%);
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;
+  color:#e6edf3;
+}
+.container{width:100%;max-width:720px;text-align:center}
+h1{margin:0 0 12px;font-weight:700}
+.status-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.pista{font-size:1rem;background:rgba(255,255,255,0.02);padding:10px 12px;border-radius:8px;flex:1;margin-right:12px;text-align:left}
+.pista{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px;border-left:4px solid var(--accent);box-shadow:0 6px 18px rgba(124,58,237,0.06)}
+.pista-label{font-size:0.85rem;color:rgba(230,237,243,0.7);font-weight:600}
+.pista-content{display:flex;gap:8px;align-items:baseline}
+.pista-length{background:rgba(255,255,255,0.04);padding:4px 8px;border-radius:999px;font-size:0.8rem;color:rgba(230,237,243,0.8)}
+.contador{min-width:160px;text-align:right}
+.board{display:grid;gap:var(--gap);justify-content:center;margin:12px 0}
+.row{display:grid;grid-auto-flow:column;gap:var(--gap)}
+.cell{
+  width:var(--cell-size);height:var(--cell-size);display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,0.03);border-radius:8px;font-weight:700;font-size:1.4rem;letter-spacing:0.08em;
+  user-select:none;position:relative;border:2px solid rgba(255,255,255,0.04);
+}
+.cell .state-icon{position:absolute;right:6px;top:6px;font-size:0.75rem;opacity:0.9}
+.cell.correct{background:linear-gradient(180deg,var(--ok),#0f7a3e);border-color:rgba(0,0,0,0.2);box-shadow:0 4px 8px rgba(16,185,129,0.12);transform:scale(1.02)}
+.cell.present{background:linear-gradient(180deg,var(--present),#c57509);border-color:rgba(0,0,0,0.2);box-shadow:0 4px 8px rgba(245,158,11,0.12)}
+.cell.absent{background:linear-gradient(180deg,#1f2937,#0b1220);border-color:rgba(255,255,255,0.02);opacity:0.85}
+
+/* flip reveal animation */
+.cell{transform-style:preserve-3d;transition:transform 350ms ease;backface-visibility:hidden}
+.cell.revealing{transform: rotateX(-90deg);} /* move para -90, então volta a 0 */
+.cell.revealed{transform: rotateX(0deg);} /* após revelar, mantém posição */
+
+/* Modal styles */
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(2,6,23,0.6);z-index:60}
+.modal[aria-hidden="false"]{display:flex}
+.modal-panel{background:var(--panel);padding:18px;border-radius:12px;min-width:300px;border:1px solid rgba(255,255,255,0.04);text-align:left}
+.modal-header{display:flex;gap:12px;align-items:center;margin-bottom:8px}
+.modal-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800}
+.modal-title{margin:0;font-size:1.05rem}
+.modal-msg{margin-bottom:12px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end}
+.modal .btn{min-width:96px}
+
+/* keyboard key animation on state change */
+.key.animate{transform:translateY(-6px) scale(1.03);transition:transform 220ms cubic-bezier(.2,.8,.2,1)}
+
+.keyboard{margin-top:18px;display:flex;flex-direction:column;gap:8px;align-items:center}
+.kbd-row{display:flex;gap:8px}
+.key{padding:10px 12px;border-radius:6px;background:rgba(255,255,255,0.03);min-width:40px;text-align:center;cursor:pointer;user-select:none;font-weight:600}
+.key.wide{min-width:64px}
+.key.correct{background:var(--ok);color:#06110a}
+.key.present{background:var(--present);color:#2b1500}
+.key.absent{background:rgba(255,255,255,0.06);color:#9aa4b2}
+
+.controls{display:flex;gap:8px;justify-content:center;margin-top:12px}
+.btn{background:var(--panel);color:inherit;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);cursor:pointer}
+.btn:disabled{opacity:0.5;cursor:default}
+
+.footer{margin-top:18px;font-size:0.85rem;color:rgba(230,237,243,0.6)}
+
+/* Responsividade: letras menores em telas pequenas */
+@media (max-width:420px){
+  :root{--cell-size:44px}
+  .cell{font-size:1rem}
+}

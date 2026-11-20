@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ArqTermo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <h1>ArqTermo</h1>
+
+    <div class="status-row">
+      <div id="pista" class="pista" role="status" aria-live="polite">
+        <span class="pista-label">Pista</span>
+        <div class="pista-content">
+          <span id="pista-text">(escreva a pista no script.js)</span>
+          <span id="pista-length" class="pista-length" aria-hidden="true"></span>
+        </div>
+      </div>
+      <div id="contador" class="contador">Acertos: 0 de 0</div>
+    </div>
+
+    <div id="board" class="board" aria-live="polite"></div>
+
+    <div class="controls">
+      <button id="btn-check" class="btn">Conferir</button>
+      <button id="btn-next" class="btn" disabled>Próxima Palavra</button>
+      <button id="btn-restart" class="btn">Reiniciar</button>
+    </div>
+
+    <div id="keyboard" class="keyboard" aria-hidden="false"></div>
+
+    <footer class="footer">ArqTermo</footer>
+  </main>
+
+  <!-- Modal acessível e configurável -->
+  <div id="modal" class="modal" aria-hidden="true">
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1">
+      <div class="modal-header">
+        <div id="modal-icon" class="modal-icon" aria-hidden="true"></div>
+        <h2 id="modal-title" class="modal-title">Mensagem</h2>
+      </div>
+      <div id="modal-msg" class="modal-msg"></div>
+      <div id="modal-actions" class="modal-actions"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

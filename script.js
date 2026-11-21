@@ -40,6 +40,8 @@ let currentWord = WORDS[0].term;
 let currentGuess = '';
 let rows = []; // array of guesses for current word
 let maxAttempts = 6; // padrão tipo Wordle
+let currentRow = 0;     // linha (tentativa) que está sendo digitada
+let roundOver = false;  // true quando a palavra foi acertada ou as tentativas acabaram
 // modal elements
 const modal = document.getElementById('modal');
 const modalTitle = document.getElementById('modal-title');
@@ -118,6 +120,8 @@ function startRound(){
   if(pistaLenEl) pistaLenEl.textContent = currentWord.length + ' letras';
   rows = Array.from({length: maxAttempts}, () => Array(currentWord.length).fill(''));
   currentGuess = '';
+  currentRow = 0;
+  roundOver = false;
   renderBoard();
   renderKeyboard();
   updateCounter();
@@ -136,7 +140,10 @@ function renderBoard(){
       const cell = document.createElement('div');
       cell.className = 'cell';
       cell.dataset.row = r; cell.dataset.col = c;
-      cell.textContent = rows[r][c] || '';
+      const letter = document.createElement('span');
+      letter.className = 'letter';
+      letter.textContent = rows[r][c] || '';
+      cell.appendChild(letter);
       const icon = document.createElement('span');
       icon.className = 'state-icon';
       cell.appendChild(icon);
@@ -172,12 +179,12 @@ function makeKey(label, extra){
   el.className = 'key' + (extra? ' '+extra : '');
   el.textContent = label;
   el.dataset.key = label;
-  el.addEventListener('click', ()=>handleKey(label));
+  el.addEventListener('click', ()=>{ handleKey(label); el.blur(); });
   return el;
 }
 
 function handleKey(key){
-  if(isBlocked) return;
+  if(isBlocked || roundOver) return;
   if(key === 'ENTER') return submitGuess();
   if(key === 'BACK') return deleteLetter();
   if(/^[A-Z]$/.test(key)) addLetter(key);
@@ -195,25 +202,21 @@ function deleteLetter(){
   updateRowUI();
 }
 
+// mostra na linha atual as letras digitadas (como no Termo/Wordle)
 function updateRowUI(){
-  const rowIndex = rows.findIndex(r => r.join('') === '' || r.join('') === undefined || r.join('') === null);
-  // find first empty row index: simplified tracking using currentGuess and filled rows
-  let target = 0;
-  for(let i=0;i<maxAttempts;i++){
-    const joined = rows[i].join('');
-    if(!joined || joined.trim() === ''){ target = i; break; }
-    target = i+1;
-  }
-  // write currentGuess into target row
+  if(currentRow >= maxAttempts) return;
   for(let c=0;c<currentWord.length;c++){
-    rows[target][c] = currentGuess[c] || '';
-    const cell = boardEl.querySelector(`.cell[data-row='${target}'][data-col='${c}']`);
-    if(cell) cell.firstChild && (cell.firstChild.textContent = ''); // clear icon
-    if(cell) cell.childNodes[0].textContent = rows[target][c] || '';
+    const ch = currentGuess[c] || '';
+    rows[currentRow][c] = ch;
+    const cell = boardEl.querySelector(`.cell[data-row='${currentRow}'][data-col='${c}']`);
+    if(!cell) continue;
+    cell.querySelector('.letter').textContent = ch;
+    cell.classList.toggle('filled', !!ch);
   }
 }
 
 function submitGuess(){
+  if(roundOver) return;
   if(currentGuess.length !== currentWord.length){
     showModal({ title: 'Erro', text: 'A palavra deve ter ' + currentWord.length + ' letras.', type: 'error', buttons:[{label:'OK', close:true}], escCloses:true });
     return;
@@ -221,13 +224,8 @@ function submitGuess(){
   // validate against currentWord
   const guess = currentGuess;
   const evaluation = evaluateGuess(guess, currentWord);
-  // apply styles to row (first empty/active row)
-  let target = 0;
-  for(let i=0;i<maxAttempts;i++){
-    const joined = rows[i].join('');
-    if(!joined || joined.trim() === ''){ target = i; break; }
-    target = i+1;
-  }
+  // linha que está sendo conferida
+  const target = currentRow;
   // reveal with flip animation and stagger
   for(let c=0;c<currentWord.length;c++){
     ((col, state)=>{
@@ -253,13 +251,14 @@ function submitGuess(){
   // update keyboard keys
   updateKeyboardStates(guess, evaluation);
 
-  // mark row as filled
+  // mark row as filled e avança para a próxima linha
   rows[target] = guess.split('');
   currentGuess = '';
-  // win check
+  currentRow++;
   // check win after reveal delay (wait full row reveal)
   const totalRevealTime = currentWord.length * 200 + 220;
   if(evaluation.every(s => s==='correct')){
+    roundOver = true;
     setTimeout(()=>{
       correctCount++;
       updateCounter();
@@ -268,14 +267,11 @@ function submitGuess(){
       saveProgress();
       showModal({ title: 'Correto!', text: 'A palavra era ' + currentWord, type: 'success', buttons:[{label:'OK', close:true}], escCloses:true });
     }, totalRevealTime);
-    // mark row as filled immediately for logic
-    rows[target] = guess.split('');
-    currentGuess = '';
     return;
   }
-  // lose or continue
-  const filledRows = rows.filter(r=>r.join('').length===currentWord.length).length;
-  if(filledRows >= maxAttempts){
+  // perdeu ou continua
+  if(currentRow >= maxAttempts){
+    roundOver = true;
     btnNext.disabled = false;
     btnCheck.disabled = true;
     setTimeout(()=> showModal({ title: 'Fim das tentativas', text: 'Acabaram as tentativas. A palavra era: ' + currentWord, type:'error', buttons:[{label:'OK', close:true}], escCloses:true }), totalRevealTime);
@@ -424,12 +420,29 @@ btnRestart.addEventListener('click', ()=>{ if(!isBlocked){ clearProgress(); rest
 
 // keyboard physical handling com bloqueio
 document.addEventListener('keydown', (ev)=>{
-  if(isBlocked) return;
+  if(isBlocked || roundOver) return;
+  // com o modal aberto, deixa Enter/Esc agirem sobre o modal e não sobre o jogo
+  if(modal.getAttribute('aria-hidden') === 'false') return;
+  if(ev.ctrlKey || ev.metaKey || ev.altKey) return;
   const k = ev.key.toUpperCase();
-  if(k === 'ENTER') { ev.preventDefault(); submitGuess(); return; }
-  if(k === 'BACKSPACE') { ev.preventDefault(); deleteLetter(); return; }
-  if(/^[A-Z]$/.test(k)) { ev.preventDefault(); addLetter(k); }
+  if(k === 'ENTER') {
+    ev.preventDefault();
+    if(ev.repeat) return; // segurar Enter não deve conferir várias vezes
+    pressKeyVisual('ENTER');
+    submitGuess();
+    return;
+  }
+  if(k === 'BACKSPACE') { ev.preventDefault(); pressKeyVisual('BACK'); deleteLetter(); return; }
+  if(/^[A-Z]$/.test(k)) { ev.preventDefault(); pressKeyVisual(k); addLetter(k); }
 });
+
+// feedback visual: a tecla da tela "afunda" quando a tecla física é pressionada
+function pressKeyVisual(label){
+  const keyBtn = keyboardEl.querySelector(`.key[data-key='${label}']`);
+  if(!keyBtn) return;
+  keyBtn.classList.add('pressed');
+  setTimeout(()=> keyBtn.classList.remove('pressed'), 120);
+}
 
 /* DICA: Edite apenas o array WORDS no topo para inserir suas pistas.
    Cada pista deve apontar unicamente para o termo e não conter a resposta.

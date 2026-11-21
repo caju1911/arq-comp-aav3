@@ -5,24 +5,43 @@
   --ok:#16a34a;
   --present:#f59e0b;
   --absent:#111827;
-  --cell-size:64px;
+  /* as casas encolhem conforme a altura da janela para o jogo todo caber sem scroll */
+  --cell-size:clamp(32px, calc((100vh - 470px) / 6), 64px);
   --gap:8px;
   color-scheme: dark;
 }
 *{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
-html,body{height:100%}
+html{min-height:100%;background:#071026}
 body{
   margin:0;
+  min-height:100vh;
   background:linear-gradient(180deg,#071026 0%, #0b1220 100%);
-  display:flex;align-items:center;justify-content:center;
-  padding:24px;
+  display:flex;align-items:flex-start;justify-content:center;
+  /* espaço no topo para a logo fixa não cobrir o conteúdo */
+  padding:76px 24px 24px;
   color:#e6edf3;
 }
+
+/* 1. Logo fixa no topo */
+.site-header{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  display:flex;align-items:center;justify-content:center;
+  height:56px;
+  background:rgba(7,16,38,0.92);
+  backdrop-filter:blur(6px);
+  border-bottom:1px solid rgba(255,255,255,0.05);
+}
+.site-header h1{margin:0;font-weight:700;font-size:1.5rem}
+
 .container{width:100%;max-width:720px;text-align:center}
-h1{margin:0 0 12px;font-weight:700}
+
+/* 2. Pista + acertos */
 .status-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+
+/* 3. Jogo */
+.game{display:flex;flex-direction:column;align-items:center}
 .pista{font-size:1rem;background:rgba(255,255,255,0.02);padding:10px 12px;border-radius:8px;flex:1;margin-right:12px;text-align:left}
-.pista{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px;border-left:4px solid var(--accent);box-shadow:0 6px 18px rgba(124,58,237,0.06)}
+.pista{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:10px 14px;border-left:4px solid var(--accent);box-shadow:0 6px 18px rgba(124,58,237,0.06)}
 .pista-label{font-size:0.85rem;color:rgba(230,237,243,0.7);font-weight:600}
 .pista-content{display:flex;gap:8px;align-items:baseline}
 .pista-length{background:rgba(255,255,255,0.04);padding:4px 8px;border-radius:999px;font-size:0.8rem;color:rgba(230,237,243,0.8)}
@@ -31,13 +50,14 @@ h1{margin:0 0 12px;font-weight:700}
 .row{display:grid;grid-auto-flow:column;gap:var(--gap)}
 .cell{
   width:var(--cell-size);height:var(--cell-size);display:flex;align-items:center;justify-content:center;
-  background:rgba(255,255,255,0.03);border-radius:8px;font-weight:700;font-size:1.4rem;letter-spacing:0.08em;
+  background:rgba(255,255,255,0.03);border-radius:8px;font-weight:700;font-size:clamp(1rem, calc(var(--cell-size) * 0.45), 1.6rem);letter-spacing:0.08em;
   user-select:none;position:relative;border:2px solid rgba(255,255,255,0.04);
 }
 .cell .state-icon{position:absolute;right:6px;top:6px;font-size:0.75rem;opacity:0.9}
 .cell.correct{background:linear-gradient(180deg,var(--ok),#0f7a3e);border-color:rgba(0,0,0,0.2);box-shadow:0 4px 8px rgba(16,185,129,0.12);transform:scale(1.02)}
 .cell.present{background:linear-gradient(180deg,var(--present),#c57509);border-color:rgba(0,0,0,0.2);box-shadow:0 4px 8px rgba(245,158,11,0.12)}
-.cell.absent{background:linear-gradient(180deg,#1f2937,#0b1220);border-color:rgba(255,255,255,0.02);opacity:0.85}
+.cell.absent{background:linear-gradient(180deg,#dc2626,#991b1b);border-color:rgba(0,0,0,0.2);box-shadow:0 4px 8px rgba(220,38,38,0.15)}
+.cell.filled{border-color:rgba(255,255,255,0.35)}
 
 /* flip reveal animation */
 .cell{transform-style:preserve-3d;transition:transform 350ms ease;backface-visibility:hidden}
@@ -58,13 +78,21 @@ h1{margin:0 0 12px;font-weight:700}
 /* keyboard key animation on state change */
 .key.animate{transform:translateY(-6px) scale(1.03);transition:transform 220ms cubic-bezier(.2,.8,.2,1)}
 
-.keyboard{margin-top:18px;display:flex;flex-direction:column;gap:8px;align-items:center}
-.kbd-row{display:flex;gap:8px}
-.key{padding:10px 12px;border-radius:6px;background:rgba(255,255,255,0.03);min-width:40px;text-align:center;cursor:pointer;user-select:none;font-weight:600}
-.key.wide{min-width:64px}
+.keyboard{margin-top:12px;display:flex;flex-direction:column;gap:6px;align-items:center;width:100%}
+.kbd-row{display:flex;gap:6px;justify-content:center;width:100%}
+.key{
+  flex:1 1 0;max-width:52px;height:40px;padding:0 4px;
+  border:0;border-radius:6px;background:rgba(255,255,255,0.08);color:inherit;
+  font-size:1.05rem;font-weight:700;text-align:center;cursor:pointer;user-select:none;
+  transition:transform 90ms ease, filter 90ms ease;
+}
+.key:hover{background:rgba(255,255,255,0.14)}
+.key.wide{flex:1.6 1 0;max-width:84px;font-size:0.8rem}
 .key.correct{background:var(--ok);color:#06110a}
 .key.present{background:var(--present);color:#2b1500}
-.key.absent{background:rgba(255,255,255,0.06);color:#9aa4b2}
+.key.absent{background:#dc2626;color:#fff}
+/* tecla pressionada (mouse/toque ou teclado físico) */
+.key:active,.key.pressed{transform:translateY(2px) scale(0.94);filter:brightness(1.4)}
 
 .controls{display:flex;gap:8px;justify-content:center;margin-top:12px}
 .btn{background:var(--panel);color:inherit;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);cursor:pointer}
@@ -76,4 +104,7 @@ h1{margin:0 0 12px;font-weight:700}
 @media (max-width:420px){
   :root{--cell-size:44px}
   .cell{font-size:1rem}
+  .kbd-row{gap:4px}
+  .key{height:48px;font-size:1rem}
+  .key.wide{font-size:0.7rem}
 }

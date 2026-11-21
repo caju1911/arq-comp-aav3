@@ -39,7 +39,6 @@ let correctCount = 0;
 let currentWord = WORDS[0].term;
 let currentGuess = '';
 let rows = []; // array of guesses for current word
-let evaluations = []; // per-row evaluation arrays
 let maxAttempts = 6; // padrão tipo Wordle
 let currentRow = 0;     // linha (tentativa) que está sendo digitada
 let roundOver = false;  // true quando a palavra foi acertada ou as tentativas acabaram
@@ -74,24 +73,9 @@ function setBlocked(flag){
 function showModal(options){
   modalTitle.textContent = options.title || 'Mensagem';
   modalMsg.textContent = options.text || '';
-  // icon (SVG)
-  modalIcon.innerHTML = '';
-  const svgNS = 'http://www.w3.org/2000/svg';
-  let iconSvg;
-  if(options.type === 'error'){
-    iconSvg = document.createElementNS(svgNS,'svg'); iconSvg.setAttribute('viewBox','0 0 24 24'); iconSvg.setAttribute('width','20'); iconSvg.setAttribute('height','20');
-    iconSvg.innerHTML = '<path fill="currentColor" d="M11 15h2v2h-2zM11 7h2v6h-2z"/>'; // simple exclamation
-    modalIcon.style.background = '#7f1d1d';
-  } else if(options.type === 'success'){
-    iconSvg = document.createElementNS(svgNS,'svg'); iconSvg.setAttribute('viewBox','0 0 24 24'); iconSvg.setAttribute('width','20'); iconSvg.setAttribute('height','20');
-    iconSvg.innerHTML = '<path fill="currentColor" d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/>';
-    modalIcon.style.background = 'rgba(16,185,129,0.12)';
-  } else {
-    iconSvg = document.createElementNS(svgNS,'svg'); iconSvg.setAttribute('viewBox','0 0 24 24'); iconSvg.setAttribute('width','20'); iconSvg.setAttribute('height','20');
-    iconSvg.innerHTML = '<path fill="currentColor" d="M11 7h2v2h-2zM12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-6h2v6z"/>';
-    modalIcon.style.background = 'rgba(124,58,237,0.06)';
-  }
-  modalIcon.appendChild(iconSvg);
+  // icon
+  modalIcon.textContent = options.type === 'error' ? '!' : (options.type==='success' ? '✓' : 'i');
+  modalIcon.style.background = options.type === 'error' ? '#7f1d1d' : (options.type==='success' ? 'rgba(16,185,129,0.12)' : 'rgba(124,58,237,0.06)');
   // actions
   modalActions.innerHTML = '';
   const buttons = options.buttons && options.buttons.length ? options.buttons : [{label:'OK', className:'', onClick:()=>{}, close:true}];
@@ -106,28 +90,17 @@ function showModal(options){
     modalActions.appendChild(btn);
     if(idx===0) setTimeout(()=>btn.focus(),50);
   });
-  // show modal and trap focus
   modal.setAttribute('aria-hidden','false');
-  const panel = modal.querySelector('.modal-panel');
-  const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
-  const focusable = Array.from(panel.querySelectorAll(focusableSelector)).filter(el => !el.hasAttribute('disabled'));
-  let firstFocusable = focusable[0] || panel;
-  let lastFocusable = focusable[focusable.length-1] || panel;
-  // focus first actionable element
-  setTimeout(()=> firstFocusable.focus(), 40);
-
-  function onKey(e){
-    if(e.key === 'Escape'){ if(options.escCloses) closeModal(); }
-    if(e.key === 'Tab'){
-      // focus trap
-      if(focusable.length === 0){ e.preventDefault(); return; }
-      if(e.shiftKey){ if(document.activeElement === firstFocusable){ e.preventDefault(); lastFocusable.focus(); } }
-      else { if(document.activeElement === lastFocusable){ e.preventDefault(); firstFocusable.focus(); } }
-    }
-  }
+  // trap minimal: close on Escape
+  function onKey(e){ if(e.key === 'Escape'){ if(options.escCloses) closeModal(); } }
   document.addEventListener('keydown', onKey);
-  function closeModal(){ modal.setAttribute('aria-hidden','true'); document.removeEventListener('keydown', onKey); }
-  return { close: closeModal };
+  // provide close function capture
+  function closeModal(){
+    modal.setAttribute('aria-hidden','true');
+    document.removeEventListener('keydown', onKey);
+  }
+  // expose close for caller if needed
+  return { close: ()=>{ modal.setAttribute('aria-hidden','true'); document.removeEventListener('keydown', onKey); } };
 }
 
 function startRound(){
@@ -146,7 +119,6 @@ function startRound(){
   const pistaLenEl = document.getElementById('pista-length');
   if(pistaLenEl) pistaLenEl.textContent = currentWord.length + ' letras';
   rows = Array.from({length: maxAttempts}, () => Array(currentWord.length).fill(''));
-  evaluations = Array.from({length: maxAttempts}, () => null);
   currentGuess = '';
   currentRow = 0;
   roundOver = false;
@@ -175,14 +147,6 @@ function renderBoard(){
       const icon = document.createElement('span');
       icon.className = 'state-icon';
       cell.appendChild(icon);
-      // if we have an evaluation for this row, apply state immediately (no animation)
-      if(evaluations && evaluations[r]){
-        const state = evaluations[r][c];
-        if(state){
-          cell.classList.add(state,'revealed');
-          icon.textContent = state === 'correct' ? '✓' : (state === 'present' ? '↺' : '✕');
-        }
-      }
       row.appendChild(cell);
     }
     boardEl.appendChild(row);
@@ -284,21 +248,13 @@ function submitGuess(){
       }, delay);
     })(c, evaluation[c]);
   }
-  // store evaluation for persistence and later rendering
-  evaluations[target] = evaluation.slice();
   // update keyboard keys
   updateKeyboardStates(guess, evaluation);
 
   // mark row as filled e avança para a próxima linha
   rows[target] = guess.split('');
   currentGuess = '';
-<<<<<<< HEAD
   currentRow++;
-=======
-  // persist progress after filling a row
-  saveProgress();
-  // win check
->>>>>>> 9c2ab1da2ff07ea5b221a5dab4c715a4fdf32655
   // check win after reveal delay (wait full row reveal)
   const totalRevealTime = currentWord.length * 200 + 220;
   if(evaluation.every(s => s==='correct')){
@@ -370,17 +326,7 @@ function restartGame(){
 
 // Persistência de progresso
 function saveProgress(){
-  // collect keyboard state
-  const keyboardStates = {};
-  const keys = keyboardEl.querySelectorAll('.key');
-  keys.forEach(k => {
-    const ch = k.dataset.key;
-    if(!ch || ch.length !== 1) return;
-    if(k.classList.contains('correct')) keyboardStates[ch] = 'correct';
-    else if(k.classList.contains('present')) keyboardStates[ch] = 'present';
-    else if(k.classList.contains('absent')) keyboardStates[ch] = 'absent';
-  });
-  const data = { currentIndex, correctCount, rows, evaluations, keyboardStates, currentGuess };
+  const data = { currentIndex, correctCount };
   try{ localStorage.setItem('arqtermo_progress', JSON.stringify(data)); }catch(e){}
 }
 function loadProgress(){
@@ -427,32 +373,13 @@ function proceedAfterValidation(forced){
   // checa se existe progresso salvo
   const progress = loadProgress();
   if(progress && !forced){
-    // perguntar se retomar (restaura estado completo se disponível)
+    // perguntar se retomar
     showModal({
       title: 'Progresso encontrado',
       text: `Existe progresso salvo: palavra ${progress.currentIndex+1} / ${WORDS.length}, acertos ${progress.correctCount}. Deseja retomar?`,
       type: 'info',
       buttons:[
-        { label: 'Retomar', className:'', onClick:()=>{
-            // restore full state if present
-            currentIndex = progress.currentIndex || 0;
-            correctCount = progress.correctCount || 0;
-            rows = progress.rows || rows;
-            evaluations = progress.evaluations || evaluations;
-            currentGuess = progress.currentGuess || '';
-            setBlocked(false);
-            // re-render board/keyboard and apply keyboard states
-            renderBoard();
-            renderKeyboard();
-            // apply keyboard states if present
-            if(progress.keyboardStates){
-              Object.entries(progress.keyboardStates).forEach(([k,v])=>{
-                const btn = keyboardEl.querySelector(`.key[data-key='${k}']`);
-                if(btn){ btn.classList.remove('present','absent','correct'); btn.classList.add(v); }
-              });
-            }
-            updateCounter();
-          }, close:true },
+        { label: 'Retomar', className:'', onClick:()=>{ currentIndex = progress.currentIndex; correctCount = progress.correctCount; setBlocked(false); startRound(); }, close:true },
         { label: 'Novo jogo', className:'', onClick:()=>{ clearProgress(); currentIndex = 0; correctCount = 0; setBlocked(false); startRound(); }, close:true }
       ],
       escCloses:false

@@ -6,7 +6,7 @@
   --present:#f59e0b;
   --absent:#111827;
   /* as casas encolhem conforme a altura da janela para o jogo todo caber sem scroll */
-  --cell-size:clamp(32px, calc((100vh - 470px) / 6), 64px);
+  --cell-size:clamp(34px, calc((100vh - 468px) / 6), 76px);
   --gap:8px;
   color-scheme: dark;
 }
@@ -18,7 +18,7 @@ body{
   background:linear-gradient(180deg,#071026 0%, #0b1220 100%);
   display:flex;align-items:flex-start;justify-content:center;
   /* espaço no topo para a logo fixa não cobrir o conteúdo */
-  padding:76px 24px 24px;
+  padding:92px 24px 24px;
   color:#e6edf3;
 }
 
@@ -26,12 +26,29 @@ body{
 .site-header{
   position:fixed;top:0;left:0;right:0;z-index:50;
   display:flex;align-items:center;justify-content:center;
-  height:56px;
+  height:80px;
   background:rgba(7,16,38,0.92);
   backdrop-filter:blur(6px);
   border-bottom:1px solid rgba(255,255,255,0.05);
 }
-.site-header h1{margin:0;font-weight:700;font-size:1.5rem}
+.site-header h1{margin:0}
+
+/* logo em ASCII: fonte monoespaçada, tamanho acompanha a largura da tela */
+.ascii-logo{
+  margin:0;
+  font-family:"Courier New",Consolas,Menlo,monospace;
+  font-size:clamp(6px, 2.3vw, 10px);
+  line-height:1.05;
+  font-weight:700;
+  white-space:pre;
+  user-select:none;
+  color:#a78bfa; /* fallback */
+  background:linear-gradient(90deg,#c4b5fd 0%,#7c3aed 50%,#a78bfa 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 8px rgba(124,58,237,0.45));
+}
 
 .container{width:100%;max-width:720px;text-align:center}
 
@@ -50,10 +67,9 @@ body{
 .row{display:grid;grid-auto-flow:column;gap:var(--gap)}
 .cell{
   width:var(--cell-size);height:var(--cell-size);display:flex;align-items:center;justify-content:center;
-  background:rgba(255,255,255,0.03);border-radius:8px;font-weight:700;font-size:clamp(1rem, calc(var(--cell-size) * 0.45), 1.6rem);letter-spacing:0.08em;
+  background:rgba(255,255,255,0.03);border-radius:8px;font-weight:700;font-size:clamp(1.1rem, calc(var(--cell-size) * 0.55), 2.2rem);letter-spacing:0.08em;
   user-select:none;position:relative;border:2px solid rgba(255,255,255,0.04);
 }
-.cell .state-icon{position:absolute;right:6px;top:6px;font-size:0.75rem;opacity:0.9}
 .cell.correct{background:linear-gradient(180deg,var(--ok),#0f7a3e);border-color:rgba(0,0,0,0.2);box-shadow:0 4px 8px rgba(16,185,129,0.12);transform:scale(1.02)}
 .cell.present{background:linear-gradient(180deg,var(--present),#c57509);border-color:rgba(0,0,0,0.2);box-shadow:0 4px 8px rgba(245,158,11,0.12)}
 .cell.absent{background:linear-gradient(180deg,#dc2626,#991b1b);border-color:rgba(0,0,0,0.2);box-shadow:0 4px 8px rgba(220,38,38,0.15)}
@@ -78,16 +94,16 @@ body{
 /* keyboard key animation on state change */
 .key.animate{transform:translateY(-6px) scale(1.03);transition:transform 220ms cubic-bezier(.2,.8,.2,1)}
 
-.keyboard{margin-top:12px;display:flex;flex-direction:column;gap:6px;align-items:center;width:100%}
-.kbd-row{display:flex;gap:6px;justify-content:center;width:100%}
+.keyboard{margin-top:10px;display:flex;flex-direction:column;gap:5px;align-items:center;width:100%}
+.kbd-row{display:flex;gap:5px;justify-content:center;width:100%}
 .key{
-  flex:1 1 0;max-width:52px;height:40px;padding:0 4px;
-  border:0;border-radius:6px;background:rgba(255,255,255,0.08);color:inherit;
-  font-size:1.05rem;font-weight:700;text-align:center;cursor:pointer;user-select:none;
+  flex:1 1 0;max-width:42px;height:32px;padding:0 2px;
+  border:0;border-radius:5px;background:rgba(255,255,255,0.08);color:inherit;
+  font-size:0.9rem;font-weight:700;text-align:center;cursor:pointer;user-select:none;
   transition:transform 90ms ease, filter 90ms ease;
 }
 .key:hover{background:rgba(255,255,255,0.14)}
-.key.wide{flex:1.6 1 0;max-width:84px;font-size:0.8rem}
+.key.wide{flex:1.6 1 0;max-width:68px;font-size:0.7rem}
 .key.correct{background:var(--ok);color:#06110a}
 .key.present{background:var(--present);color:#2b1500}
 .key.absent{background:#dc2626;color:#fff}

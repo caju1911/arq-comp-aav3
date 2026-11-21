@@ -144,9 +144,6 @@ function renderBoard(){
       letter.className = 'letter';
       letter.textContent = rows[r][c] || '';
       cell.appendChild(letter);
-      const icon = document.createElement('span');
-      icon.className = 'state-icon';
-      cell.appendChild(icon);
       row.appendChild(cell);
     }
     boardEl.appendChild(row);
@@ -242,8 +239,6 @@ function submitGuess(){
           cell.classList.remove('revealing');
           cell.classList.add('revealed');
           cell.classList.add(state);
-          const icon = cell.querySelector('.state-icon');
-          icon.textContent = state === 'correct' ? '✓' : (state==='present' ? '↺' : '✕');
         }, 180);
       }, delay);
     })(c, evaluation[c]);

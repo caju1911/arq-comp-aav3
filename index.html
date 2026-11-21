@@ -7,15 +7,19 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- 1. Logo fixa no topo (não rola junto com a página) -->
   <header class="site-header">
-    <div class="brand">
-      <span class="logo">ArqTermo</span>
-    </div>
+    <h1 class="logo" aria-label="ArqTermo"><pre class="ascii-logo" aria-hidden="true">    _                  _____
+   / \    _ __   __ _ |_   _|  ___   _ __  _ __ ___    ___
+  / _ \  | '__| / _` |  | |   / _ \ | '__|| '_ ` _ \  / _ \
+ / ___ \ | |   | (_| |  | |  |  __/ | |   | | | | | || (_) |
+/_/   \_\|_|    \__, |  |_|   \___| |_|   |_| |_| |_| \___/
+                   |_|</pre></h1>
   </header>
 
   <main class="container">
-
-    <div class="status-row">
+    <!-- 2. Pista, tamanho da palavra e acertos -->
+    <section class="status-row" aria-label="Pista e acertos">
       <div id="pista" class="pista" role="status" aria-live="polite">
         <span class="pista-label">Pista</span>
         <div class="pista-content">
@@ -24,17 +28,21 @@
         </div>
       </div>
       <div id="contador" class="contador">Acertos: 0 de 0</div>
-    </div>
+    </section>
 
-    <div id="board" class="board" aria-live="polite"></div>
+    <!-- 3. O jogo em si -->
+    <section class="game" aria-label="Jogo">
+      <div id="board" class="board" aria-live="polite"></div>
 
-    <div class="controls">
-      <button id="btn-check" class="btn">Conferir</button>
-      <button id="btn-next" class="btn" disabled>Próxima Palavra</button>
-      <button id="btn-restart" class="btn">Reiniciar</button>
-    </div>
+      <div class="controls">
+        <button id="btn-check" class="btn">Conferir</button>
+        <button id="btn-next" class="btn" disabled>Próxima Palavra</button>
+        <button id="btn-restart" class="btn">Reiniciar</button>
+      </div>
 
-    <div id="keyboard" class="keyboard" aria-hidden="false"></div>
+      <div id="keyboard" class="keyboard" aria-hidden="false"></div>
+    </section>
+
   </main>
 
   <!-- Modal acessível e configurável -->
